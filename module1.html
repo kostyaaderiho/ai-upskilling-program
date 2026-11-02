@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Модуль 1 — Основы: модели, токены и стоимость</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="container">
+        <span class="brand"><a href="index.html">← AI Upskilling</a></span>
+        <nav>
+          <a href="#theory">Теория</a>
+          <a href="#t1">1.1</a>
+          <a href="#t2">1.2</a>
+          <a href="#t3">1.3</a>
+          <a href="#t4">1.4</a>
+          <a href="#t5">1.5</a>
+          <a href="#final">Итог</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="container">
+      <section class="module-hero">
+        <span class="num">Модуль 1</span>
+        <h1>Основы: модели, токены и стоимость</h1>
+        <p>
+          Цель модуля — перестать воспринимать LLM как «магию» и увидеть
+          механику: ответ модели вероятностный, за каждый токен вы платите, у
+          каждой модели свои пределы и цена. В итоговом задании вы соберёте
+          LLM-клиент с контролем стоимости. Он станет фундаментом проекта
+          KnowledgeBot.
+        </p>
+        <div class="note">
+          <b>Как проходить модуль.</b> Сначала курсы теории, затем задания 1.1–1.5.
+          Задание по теме, которую вы уверенно знаете, можно пропустить:
+          итоговое задание покажет, если в ней есть пробел. Модуль засчитан,
+          когда итоговое задание выполнено по всем критериям.
+        </div>
+        <div class="note">
+          <b>Стек:</b> Python 3.12+, пакеты <code>openai</code>,
+          <code>tiktoken</code>, <code>python-dotenv</code>. Без платного ключа
+          работает локальная модель через
+          <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a>:
+          <code>OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")</code>
+          и модель, например <code>llama3.1</code>.
+        </div>
+      </section>
+
+      <div class="layout">
+        <aside class="toc">
+          <h4>Модуль</h4>
+          <ol>
+            <li><a href="#theory">Теория и темы без практики</a></li>
+            <li><a href="#t1">Параметры генерации</a></li>
+            <li><a href="#t2">Токены и контекстное окно</a></li>
+            <li><a href="#t3">Стоимость и выбор модели</a></li>
+            <li><a href="#t4">LLM через API</a></li>
+            <li><a href="#t5">Гигиена контекста в coding agents</a></li>
+            <li><a href="#final">Итоговое задание</a></li>
+          </ol>
+        </aside>
+
+        <main>
+          <!-- THEORY -->
+          <article class="task theory" id="theory">
+            <span class="chip">Теория</span>
+            <h2>Курсы и темы без практики</h2>
+
+            <h3>Курсы модуля</h3>
+            <table>
+              <tr>
+                <th>Курс</th>
+                <th>Закрепляется в заданиях</th>
+              </tr>
+              <tr>
+                <td>Token Optimization for AI-Assisted SDLC (1h30)</td>
+                <td>1.2, 1.5</td>
+              </tr>
+              <tr>
+                <td>LLM: Fundamentals (1h15)</td>
+                <td>только теория</td>
+              </tr>
+              <tr>
+                <td>
+                  AI/RUN Bootcamp → 2.1 GenAI Key Concepts: Tokens, Economics &amp;
+                  Pricing; Context Management (32 min)
+                </td>
+                <td>1.1, 1.2, 1.3</td>
+              </tr>
+              <tr>
+                <td>AI Applications Development → LLMs API</td>
+                <td>1.4</td>
+              </tr>
+              <tr>
+                <td>AI Applications Development → LLMs Output Tuning</td>
+                <td>1.1</td>
+              </tr>
+              <tr>
+                <td>Introduction to Large Language Models (1h18)</td>
+                <td>1.2</td>
+              </tr>
+              <tr>
+                <td>Optional: Generative AI: Introduction to LLMs (1h37)</td>
+                <td>только теория</td>
+              </tr>
+            </table>
+
+            <h3>Темы только для теории</h3>
+            <p>
+              Эти темы — знание, а не навык: их нельзя применить в коде. Они
+              закрываются курсами и объяснениями к вопросам квиза, заданий по ним
+              нет.
+            </p>
+            <table>
+              <tr>
+                <th>Тема</th>
+                <th>Вопросы квиза</th>
+              </tr>
+              <tr>
+                <td>GPT и ChatGPT; место LLM среди AI, ML и DL</td>
+                <td>Q4, Q5</td>
+              </tr>
+              <tr>
+                <td>Что делает модель «большой»; законы масштабирования (Chinchilla)</td>
+                <td>Q6, Q12</td>
+              </tr>
+              <tr>
+                <td>Base-модель и instruction tuning / RLHF</td>
+                <td>Q11</td>
+              </tr>
+              <tr>
+                <td>Self-attention; encoder-only, decoder-only, encoder-decoder</td>
+                <td>Q13, Q14</td>
+              </tr>
+            </table>
+            <div class="note">
+              Номера вопросов — порядковые номера в файле квиза
+              <code>AI Upskilling 1.xlsx</code>. Вопрос Q9 (RAG для большой
+              вики) засчитывается в модуль 5.
+            </div>
+          </article>
+
+          <!-- TASK 1.1 -->
+          <article class="task" id="t1">
+            <span class="chip">Задание 1.1</span>
+            <h2>Параметры генерации и недетерминизм</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> LLMs Output Tuning; GenAI Key Concepts</span>
+              <span><b>Квиз:</b> Q7</span>
+              <span><b>Время:</b> ~30 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> скрипт, который показывает, как
+              параметры генерации меняют ответ. <strong>Зачем:</strong> один и
+              тот же запрос может дать разные ответы, и это нормальное поведение
+              модели, а не ошибка. Нужно знать, какими параметрами им управлять.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                Отправьте один и тот же творческий запрос по 5 раз при
+                <code>temperature=0</code> и при <code>temperature=1.2</code>.
+                Посчитайте, сколько разных ответов получилось.
+              </li>
+              <li>
+                Получите топ-5 кандидатов первого токена ответа с вероятностями
+                (<code>logprobs</code>). Если ваш провайдер не поддерживает
+                logprobs, пропустите этот пункт.
+              </li>
+              <li>
+                Задайте маленький <code>max_tokens</code> для длинного ответа и
+                обработайте случай, когда ответ обрезан.
+              </li>
+            </ol>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                При <code>temperature=0</code> из 5 запусков не больше 2 разных
+                ответов, при <code>temperature=1.2</code> — не меньше 3.
+              </li>
+              <li>Скрипт печатает 5 кандидатов первого токена и их вероятности в процентах.</li>
+              <li>
+                Обрезанный ответ определяется по
+                <code>finish_reason == "length"</code>, и скрипт сообщает об этом.
+              </li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Вероятность из logprob: <code>math.exp(logprob)</code>.
+                  </li>
+                  <li>
+                    <code>temperature=0</code> делает ответ почти, но не всегда
+                    полностью стабильным. Поэтому в критерии допускается 2 разных
+                    ответа.
+                  </li>
+                  <li>
+                    Причина остановки лежит в
+                    <code>response.choices[0].finish_reason</code>.
+                  </li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать решение</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code># params_demo.py
+import math
+from collections import Counter
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+client = OpenAI()      # Ollama: OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+MODEL = "gpt-4o-mini"  # Ollama: например "llama3.1"
+
+def ask(prompt: str, **params):
+    r = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        **params,
+    )
+    return r.choices[0]
+
+# 1. Разброс ответов при разной температуре
+prompt = "Придумай одно название для кофейни. Ответь только названием."
+for t in (0.0, 1.2):
+    answers = [ask(prompt, temperature=t).message.content.strip() for _ in range(5)]
+    print(f"temperature={t}: {len(set(answers))} разных из 5 -> {Counter(answers).most_common(3)}")
+
+# 2. Кандидаты первого токена ответа
+choice = ask("Продолжи одним словом: небо обычно ...",
+             max_tokens=1, logprobs=True, top_logprobs=5)
+for cand in choice.logprobs.content[0].top_logprobs:
+    print(f"{cand.token!r:15} {math.exp(cand.logprob):6.1%}")
+
+# 3. Обрезка ответа по max_tokens
+choice = ask("Перечисли 20 столиц Европы через запятую.", max_tokens=15)
+if choice.finish_reason == "length":
+    print("Ответ обрезан по max_tokens:", choice.message.content)</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> ответ LLM вероятностный, поэтому его всегда нужно
+              проверять. Для задач, где нужна стабильность (классификация,
+              извлечение полей), ставьте низкую температуру, а
+              <code>max_tokens</code> ограничивает и длину, и стоимость ответа.
+            </div>
+          </article>
+
+          <!-- TASK 1.2 -->
+          <article class="task" id="t2">
+            <span class="chip">Задание 1.2</span>
+            <h2>Токены и контекстное окно</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> Introduction to LLMs; GenAI Key Concepts (Context Management); Token Optimization</span>
+              <span><b>Квиз:</b> Q10</span>
+              <span><b>Время:</b> ~30 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> счётчик токенов и проверку, что
+              запрос помещается в окно модели. <strong>Зачем:</strong> вы платите
+              за токены, а контекстное окно ограничивает вход и выход вместе. Это
+              нужно уметь измерять до отправки запроса.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                Напишите <code>count_tokens(text)</code> на
+                <code>tiktoken</code> и сравните результат с
+                <code>usage.prompt_tokens</code> из ответа API для того же текста.
+              </li>
+              <li>
+                Посчитайте токены одной и той же фразы на русском и на английском
+                и выведите их соотношение.
+              </li>
+              <li>
+                Напишите <code>fits(input_tokens, max_output_tokens, window)</code>.
+                Проверьте случай из квиза: окно 128K, вход 120K, ответ 20K.
+              </li>
+              <li>
+                Напишите <code>trim_to_budget(text, budget)</code>, который
+                обрезает текст до заданного числа токенов.
+              </li>
+            </ol>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                <code>count_tokens</code> и <code>usage.prompt_tokens</code>
+                расходятся не больше чем на 10 токенов. Разница — служебные
+                токены разметки сообщений.
+              </li>
+              <li>Выведено соотношение «токены RU / токены EN» для одной фразы.</li>
+              <li>
+                <code>fits(120_000, 20_000, 128_000)</code> возвращает
+                <code>False</code>, <code>fits(100_000, 20_000, 128_000)</code> —
+                <code>True</code>.
+              </li>
+              <li>
+                После <code>trim_to_budget(text, 50)</code> в тексте не больше 50
+                токенов.
+              </li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Для моделей семейства GPT-4o используйте
+                    <code>tiktoken.get_encoding("o200k_base")</code>.
+                  </li>
+                  <li>
+                    У моделей Ollama свои токенизаторы, поэтому tiktoken даёт для
+                    них только приблизительное число.
+                  </li>
+                  <li>Окно модели — это сумма входа и выхода, а не только вход.</li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать решение</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code># tokens_demo.py
+import tiktoken
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+enc = tiktoken.get_encoding("o200k_base")
+
+def count_tokens(text: str) -> int:
+    return len(enc.encode(text))
+
+# 1. Сверка с API
+client = OpenAI()
+text = "Кратко перескажи: модель предсказывает следующий токен. " * 20
+r = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": text}],
+    max_tokens=50,
+)
+print("tiktoken:", count_tokens(text), "API:", r.usage.prompt_tokens)
+
+# 2. Русский и английский
+ru = "Модель предсказывает следующий токен на основе предыдущих."
+en = "The model predicts the next token based on the previous ones."
+print("RU:", count_tokens(ru), "EN:", count_tokens(en),
+      "соотношение:", round(count_tokens(ru) / count_tokens(en), 2))
+
+# 3. Окно — это вход + выход
+def fits(input_tokens: int, max_output_tokens: int, window: int) -> bool:
+    return input_tokens + max_output_tokens &lt;= window
+
+assert not fits(120_000, 20_000, 128_000)
+assert fits(100_000, 20_000, 128_000)
+
+# 4. Обрезка до бюджета
+def trim_to_budget(text: str, budget: int) -> str:
+    tokens = enc.encode(text)
+    return text if len(tokens) &lt;= budget else enc.decode(tokens[:budget])
+
+assert count_tokens(trim_to_budget(text, 50)) &lt;= 50</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> токен — не слово и не буква, и русский текст обычно
+              дороже английского. Проверяйте, помещается ли запрос в окно вместе
+              с ответом, до отправки, а не по ошибке от API.
+            </div>
+          </article>
+
+          <!-- TASK 1.3 -->
+          <article class="task" id="t3">
+            <span class="chip">Задание 1.3</span>
+            <h2>Стоимость и выбор модели</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> GenAI Key Concepts (LLM Providers; Tokens, Economics &amp; Pricing)</span>
+              <span><b>Квиз:</b> Q8</span>
+              <span><b>Время:</b> ~60 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> сравниваем модели по цене, скорости и
+              качеству и считаем, сколько экономит выбор модели под задачу.
+              <strong>Зачем:</strong> выбор модели — главный рычаг стоимости.
+              Простые задачи не нужно отправлять в самую мощную модель.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                Напишите <code>estimate_cost(model, input_tokens, output_tokens)</code>
+                по ценам за 1M токенов. Цены возьмите из актуального прайса
+                провайдера.
+              </li>
+              <li>
+                Подготовьте 10 запросов: 5 простых (переформулировать, исправить
+                опечатки, оформить список) и 5 сложных (анализ, план, сравнение).
+                Прогоните их на 2 моделях: маленькой и большой.
+              </li>
+              <li>
+                Для каждого ответа сохраните модель, тип задачи, задержку,
+                стоимость и вашу оценку качества от 1 до 5.
+              </li>
+              <li>
+                Посчитайте месячную стоимость для 500 запросов в день, где 90%
+                простые: всё на большой модели против выбора модели по типу
+                задачи.
+              </li>
+              <li>
+                Покажите, что переход между провайдерами (например, OpenAI и
+                Ollama) меняет только <code>base_url</code> и название модели.
+              </li>
+            </ol>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                Есть таблица результатов (<code>module1_models.json</code> или
+                Markdown): модель, тип задачи, задержка, стоимость, оценка.
+              </li>
+              <li>
+                Посчитана месячная стоимость двух стратегий и разница между ними.
+              </li>
+              <li>
+                Есть вывод, на какой модели простые задачи не теряют в качестве
+                (разница средних оценок с большой моделью не больше 0,5).
+              </li>
+              <li>Один и тот же код работает с двумя провайдерами.</li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Задержку меряйте через <code>time.perf_counter()</code> до и
+                    после вызова.
+                  </li>
+                  <li>
+                    Если платного ключа нет, сравните две локальные модели Ollama
+                    разного размера, а цены возьмите из прайса облачного
+                    провайдера для похожих моделей.
+                  </li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать решение</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code># models_compare.py
+import json, time
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+# Цены за 1M токенов — ПРИМЕР. Подставьте актуальные из прайса провайдера.
+MODELS = {
+    "small": {"name": "gpt-4o-mini", "in": 0.15, "out": 0.60},
+    "large": {"name": "gpt-4o",      "in": 2.50, "out": 10.00},
+}
+
+def estimate_cost(key: str, input_tokens: int, output_tokens: int) -> float:
+    p = MODELS[key]
+    return (input_tokens * p["in"] + output_tokens * p["out"]) / 1_000_000
+
+TASKS = [
+    ("simple", "Переформулируй вежливо: «пришлите отчёт до вечера»"),
+    ("simple", "Исправь опечатки: «зделать рефакторинг модуля оплты»"),
+    # ... ещё 3 простых
+    ("complex", "Сравни REST и gRPC для внутреннего API из 30 сервисов, дай рекомендацию"),
+    ("complex", "Составь план миграции монолита на микросервисы для команды из 5 человек"),
+    # ... ещё 3 сложных
+]
+
+client = OpenAI()  # Ollama: OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+rows = []
+for key, spec in MODELS.items():
+    for kind, prompt in TASKS:
+        start = time.perf_counter()
+        r = client.chat.completions.create(
+            model=spec["name"], messages=[{"role": "user", "content": prompt}])
+        rows.append({
+            "model": key, "kind": kind,
+            "latency_s": round(time.perf_counter() - start, 2),
+            "cost_usd": estimate_cost(key, r.usage.prompt_tokens, r.usage.completion_tokens),
+            "answer": r.choices[0].message.content,
+            "score": None,  # оценку 1–5 ставите вручную после прогона
+        })
+
+with open("module1_models.json", "w", encoding="utf-8") as f:
+    json.dump(rows, f, ensure_ascii=False, indent=2)
+
+# Месячная стоимость двух стратегий
+def choose_model(kind: str) -> str:
+    return "small" if kind == "simple" else "large"
+
+def monthly(per_day: int, share_simple: float, routed: bool,
+            avg_in: int = 400, avg_out: int = 300, days: int = 22) -> float:
+    total = 0.0
+    for kind, share in (("simple", share_simple), ("complex", 1 - share_simple)):
+        key = choose_model(kind) if routed else "large"
+        total += per_day * share * estimate_cost(key, avg_in, avg_out)
+    return total * days
+
+all_large = monthly(500, 0.9, routed=False)
+routed = monthly(500, 0.9, routed=True)
+print(f"всё на large: ${all_large:.2f}/мес, по типу задачи: ${routed:.2f}/мес, "
+      f"экономия {1 - routed / all_large:.0%}")</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> выбор модели — инженерное решение по данным: цена,
+              задержка, качество на ваших задачах. Модель «новее и мощнее» — не
+              аргумент.
+            </div>
+          </article>
+
+          <!-- TASK 1.4 -->
+          <article class="task" id="t4">
+            <span class="chip">Задание 1.4</span>
+            <h2>Использование LLM через API</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> AI Applications Development → LLMs API</span>
+              <span><b>Квиз:</b> вопросов нет — задание обязательно</span>
+              <span><b>Время:</b> ~60 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> переиспользуемый класс
+              <code>LLMClient</code>. <strong>Зачем:</strong> все следующие
+              модули вызывают модель через него. Клиент должен возвращать токены,
+              поддерживать диалог и streaming и правильно обрабатывать ошибки.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                Метод <code>chat(messages, model=None, **params)</code> принимает
+                историю сообщений с ролями <code>system</code>,
+                <code>user</code>, <code>assistant</code> и возвращает объект с
+                текстом, моделью и числом входных и выходных токенов.
+              </li>
+              <li>
+                Метод <code>ask(prompt, system=None, **params)</code> — короткая
+                форма для одного вопроса.
+              </li>
+              <li>Метод <code>stream(prompt)</code> отдаёт ответ по частям.</li>
+              <li>
+                Повторы только для временных ошибок (429, 5xx, таймаут, нет
+                соединения): не больше 3 раз, пауза растёт (1, 2, 4 с). Ошибки
+                401 и 400 повторять нельзя, повтор их не исправит.
+              </li>
+            </ol>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                <code>ask()</code> возвращает текст и число токенов, а не просто
+                строку.
+              </li>
+              <li>
+                Диалог из 3 реплик через <code>chat()</code>: модель помнит, что
+                пользователь сказал в первой реплике.
+              </li>
+              <li><code>stream()</code> выводит ответ по частям, а не одним блоком.</li>
+              <li>
+                Тест с подменой API без сети: две ошибки 429, потом успех — три
+                вызова и результат. Ошибка 401 — один вызов и исключение.
+              </li>
+              <li>
+                Ошибки не превращаются в строку ответа: вызывающий код получает
+                исключение.
+              </li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Классы ошибок SDK: <code>openai.RateLimitError</code>,
+                    <code>openai.APIConnectionError</code> (таймаут — его
+                    подкласс), <code>openai.InternalServerError</code>,
+                    <code>openai.AuthenticationError</code>,
+                    <code>openai.BadRequestError</code>.
+                  </li>
+                  <li>
+                    У SDK есть свои повторы. Отключите их
+                    (<code>OpenAI(max_retries=0)</code>), чтобы повторами
+                    управлял ваш код.
+                  </li>
+                  <li>
+                    Для теста замените <code>client</code> на
+                    <code>unittest.mock.MagicMock</code>, а
+                    <code>time.sleep</code> — на функцию, которая ничего не
+                    делает.
+                  </li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать решение</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code># llm_client.py
+import time
+from dataclasses import dataclass
+import openai
+from openai import OpenAI
+
+# Временные ошибки: повтор может помочь. APITimeoutError — подкласс APIConnectionError.
+RETRYABLE = (openai.RateLimitError, openai.APIConnectionError, openai.InternalServerError)
+
+@dataclass
+class Answer:
+    text: str
+    model: str
+    input_tokens: int
+    output_tokens: int
+
+class LLMClient:
+    def __init__(self, model: str = "gpt-4o-mini", base_url: str | None = None,
+                 api_key: str | None = None, max_retries: int = 3, timeout: float = 30):
+        # max_retries=0: повторами управляет наш код, а не SDK
+        self.client = OpenAI(base_url=base_url, api_key=api_key,
+                             max_retries=0, timeout=timeout)
+        self.model = model
+        self.max_retries = max_retries
+
+    def chat(self, messages: list[dict], model: str | None = None, **params) -> Answer:
+        for attempt in range(self.max_retries + 1):
+            try:
+                r = self.client.chat.completions.create(
+                    model=model or self.model, messages=messages, **params)
+                return Answer(r.choices[0].message.content, r.model,
+                              r.usage.prompt_tokens, r.usage.completion_tokens)
+            except RETRYABLE:
+                if attempt == self.max_retries:
+                    raise
+                time.sleep(2 ** attempt)  # 1, 2, 4 секунды
+        # AuthenticationError, BadRequestError не ловим: повтор не поможет
+
+    def ask(self, prompt: str, system: str | None = None, **params) -> Answer:
+        messages = [{"role": "system", "content": system}] if system else []
+        messages.append({"role": "user", "content": prompt})
+        return self.chat(messages, **params)
+
+    def stream(self, prompt: str):
+        stream = self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            stream=True,
+        )
+        for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content</code></pre>
+                <p>Проверка повторов без сети:</p>
+                <pre><code># test_llm_client.py — запуск: pytest -q
+from unittest.mock import MagicMock
+import httpx, openai, pytest
+import llm_client
+from llm_client import LLMClient
+
+def api_error(cls, status):
+    request = httpx.Request("POST", "https://api.test/v1/chat/completions")
+    return cls("error", response=httpx.Response(status, request=request), body=None)
+
+def ok_response():
+    r = MagicMock()
+    r.choices[0].message.content = "ok"
+    r.model = "test-model"
+    r.usage.prompt_tokens, r.usage.completion_tokens = 5, 1
+    return r
+
+@pytest.fixture
+def bot(monkeypatch):
+    monkeypatch.setattr(llm_client.time, "sleep", lambda s: None)
+    b = LLMClient(api_key="test")
+    b.client = MagicMock()
+    return b
+
+def test_retries_rate_limit(bot):
+    create = bot.client.chat.completions.create
+    create.side_effect = [api_error(openai.RateLimitError, 429),
+                          api_error(openai.RateLimitError, 429), ok_response()]
+    assert bot.ask("привет").text == "ok"
+    assert create.call_count == 3
+
+def test_no_retry_on_auth_error(bot):
+    create = bot.client.chat.completions.create
+    create.side_effect = api_error(openai.AuthenticationError, 401)
+    with pytest.raises(openai.AuthenticationError):
+        bot.ask("привет")
+    assert create.call_count == 1</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> повторять стоит только то, что может пройти со второго
+              раза. Ошибка должна доходить до вызывающего кода, а не прятаться в
+              строке ответа: иначе программа примет текст ошибки за ответ модели.
+            </div>
+          </article>
+
+          <!-- TASK 1.5 -->
+          <article class="task" id="t5">
+            <span class="chip">Задание 1.5</span>
+            <h2>Гигиена контекста в coding agents</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> Token Optimization for AI-Assisted SDLC</span>
+              <span><b>Квиз:</b> Q1, Q2, Q3</span>
+              <span><b>Время:</b> ~45 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> три приёма экономии контекста в
+              Copilot, Cursor или Claude Code на учебном проекте.
+              <strong>Зачем:</strong> в работе с агентом токены тратятся быстрее
+              всего на лишний контекст: весь репозиторий, длинную историю, вывод
+              тестов. Чем меньше лишнего, тем дешевле и точнее ответ.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                <b>Точная ссылка на файлы.</b> Дайте агенту одну и ту же задачу
+                дважды: с <code>@workspace</code> / <code>@Codebase</code> и с
+                точной ссылкой <code>@file</code> или <code>@folder</code>.
+                Запишите размер контекста в обоих случаях.
+              </li>
+              <li>
+                <b>Handoff-файл.</b> В конце рабочей сессии попросите агента
+                записать в <code>handoff.md</code> принятые решения, сделанное,
+                открытые вопросы и следующий шаг. Начните новую сессию с этого
+                файла вместо старой истории.
+              </li>
+              <li>
+                <b>Вывод тестов в файл.</b> Добавьте в файл правил агента
+                (<code>CLAUDE.md</code>, <code>.cursor/rules</code> или
+                <code>.github/copilot-instructions.md</code>) правило: полный
+                вывод тестов писать в файл, в разговор возвращать только упавшие
+                тесты или последние строки.
+              </li>
+            </ol>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                Есть таблица двух замеров: способ ссылки, размер контекста,
+                качество ответа.
+              </li>
+              <li>
+                <code>handoff.md</code> короче 40 строк и содержит 4 раздела.
+                Новая сессия продолжает задачу, не спрашивая заново про принятые
+                решения.
+              </li>
+              <li>
+                Правило лежит в файле правил, и в следующей сессии агент следует
+                ему: в разговоре видны только упавшие тесты.
+              </li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Размер контекста: в Claude Code — команды
+                    <code>/context</code> и <code>/cost</code>, в Cursor —
+                    индикатор заполнения контекста в чате, в Copilot — список
+                    использованных ссылок под ответом.
+                  </li>
+                  <li>
+                    После долгого перерыва кэш промпта обычно уже истёк, и
+                    продолжение старой сессии отправляет всю историю по полной
+                    цене. Поэтому handoff-файл дешевле.
+                  </li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать пример решения</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code># handoff.md
+## Решения
+- Клиент LLM — один класс LLMClient, повторы только для 429/5xx.
+- Цены моделей хранятся в config/models.json, а не в коде.
+
+## Сделано
+- llm_client.py: chat, ask, stream, повторы; тесты test_llm_client.py проходят.
+
+## Открытые вопросы
+- Нужен ли streaming в CLI или достаточно в API?
+
+## Следующий шаг
+- Добавить проверку окна контекста перед вызовом (задача из итогового задания).</code></pre>
+                <pre><code># правило для CLAUDE.md / .cursor/rules / copilot-instructions.md
+## Запуск тестов
+- Полный вывод тестов пиши в файл: pytest -q > .tmp/test.log 2>&1
+- В разговор возвращай только итог и упавшие тесты: tail -n 40 .tmp/test.log
+- Не печатай в разговор полный лог, если я не попросил.</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> в работе с агентом точный контекст даёт и экономию, и
+              более точный ответ. Правило, записанное в файл правил, работает в
+              каждой сессии без напоминаний.
+            </div>
+          </article>
+
+          <!-- FINAL -->
+          <article class="task final" id="final">
+            <span class="chip">Итоговое задание модуля</span>
+            <h2>LLM-клиент с контролем стоимости</h2>
+            <div class="meta">
+              <span><b>Подтемы:</b> 1.1–1.4</span>
+              <span><b>Время:</b> 2–4 часа</span>
+              <span><b>Сдача:</b> код + заметка о решениях</span>
+            </div>
+            <div class="goal">
+              <strong>Сценарий:</strong> команда запускает внутреннего
+              AI-помощника. Бюджет ограничен, запросы бывают простые и сложные,
+              пользователи иногда присылают очень длинные тексты. Нужен клиент,
+              который сам выбирает модель, не выходит за окно контекста и бюджет
+              и записывает, сколько стоил каждый запрос.
+            </div>
+
+            <h3>Требования</h3>
+            <ol class="cond">
+              <li>
+                <b>Выбор модели.</b> Метод
+                <code>ask(prompt, task="simple" | "complex", ...)</code> берёт
+                модель из конфигурации по типу задачи. Неизвестный тип задачи —
+                ошибка.
+              </li>
+              <li>
+                <b>Окно контекста.</b> До вызова API клиент проверяет, что вход и
+                <code>max_tokens</code> помещаются в окно модели. Если передана
+                история, старые сообщения удаляются, системное сообщение
+                остаётся. Если не помещается даже без истории —
+                <code>ContextOverflowError</code>, API не вызывается.
+              </li>
+              <li>
+                <b>Бюджет.</b> Если оценка стоимости запроса превышает остаток
+                бюджета — <code>BudgetExceededError</code> до вызова API.
+                Потраченное считается по фактическому <code>usage</code>.
+              </li>
+              <li>
+                <b>Журнал.</b> Каждый успешный запрос — строка в
+                <code>usage.jsonl</code>: время, модель, тип задачи, токены,
+                стоимость, задержка. Текст запроса в журнал не пишется.
+              </li>
+              <li>
+                <b>Повторы</b> — как в задании 1.4: только временные ошибки.
+              </li>
+              <li>
+                <b>Стабильный режим.</b> <code>deterministic=True</code> ставит
+                <code>temperature=0</code>.
+              </li>
+              <li>
+                <b>Провайдеры.</b> Переход между OpenAI и Ollama — только
+                изменение конфигурации.
+              </li>
+            </ol>
+
+            <h3>Каркас</h3>
+            <pre><code># cost_aware_client.py
+from dataclasses import dataclass
+from llm_client import LLMClient, Answer  # из задания 1.4
+
+class ContextOverflowError(Exception): ...
+class BudgetExceededError(Exception): ...
+
+@dataclass(frozen=True)
+class ModelSpec:
+    name: str
+    context_window: int
+    price_in: float   # $ за 1M входных токенов
+    price_out: float  # $ за 1M выходных токенов
+
+class CostAwareClient:
+    def __init__(self, llm: LLMClient, models: dict[str, ModelSpec],
+                 routing: dict[str, str], budget_usd: float,
+                 log_path: str = "usage.jsonl"):
+        ...
+
+    def ask(self, prompt: str, *, task: str = "simple", system: str | None = None,
+            history: list[dict] | None = None, max_tokens: int = 512,
+            deterministic: bool = False) -> Answer:
+        ...
+
+    @property
+    def spent_usd(self) -> float:
+        ...</code></pre>
+
+            <h3>Критерии приёмки</h3>
+            <table>
+              <tr>
+                <th>Подтема</th>
+                <th>Критерий</th>
+              </tr>
+              <tr>
+                <td>1.3 Выбор модели</td>
+                <td>
+                  <code>task="simple"</code> и <code>task="complex"</code> уходят
+                  в разные модели из конфигурации; неизвестный тип — ошибка без
+                  вызова API.
+                </td>
+              </tr>
+              <tr>
+                <td>1.2 Окно контекста</td>
+                <td>
+                  Вход с историей не помещается в окно вместе с
+                  <code>max_tokens</code>: старые сообщения удалены, запрос
+                  помещается. Если не помещается сам вопрос —
+                  <code>ContextOverflowError</code> без вызова API. Системное
+                  сообщение сохраняется всегда.
+                </td>
+              </tr>
+              <tr>
+                <td>1.3 Стоимость</td>
+                <td>
+                  Стоимость в журнале совпадает с расчётом по
+                  <code>usage</code> и ценам из конфигурации.
+                  <code>BudgetExceededError</code> возникает до вызова API.
+                </td>
+              </tr>
+              <tr>
+                <td>1.4 API и ошибки</td>
+                <td>
+                  Тест без сети: 429 повторяется не больше 3 раз, 401 не
+                  повторяется.
+                </td>
+              </tr>
+              <tr>
+                <td>1.1 Параметры</td>
+                <td>
+                  <code>deterministic=True</code> передаёт в API
+                  <code>temperature=0</code>.
+                </td>
+              </tr>
+              <tr>
+                <td>Безопасность журнала</td>
+                <td>В <code>usage.jsonl</code> нет текста запросов.</td>
+              </tr>
+              <tr>
+                <td>Провайдеры</td>
+                <td>Один и тот же код работает с OpenAI и Ollama.</td>
+              </tr>
+            </table>
+
+            <h3>Заметка о решениях (до полстраницы)</h3>
+            <ul class="cond">
+              <li>
+                Какие модели выбраны для простых и сложных задач и почему (данные
+                из задания 1.3).
+              </li>
+              <li>Как оценивается стоимость запроса до вызова API и где эта оценка неточна.</li>
+              <li>Сколько стоил прогон 20 тестовых запросов и сколько сэкономил выбор модели.</li>
+            </ul>
+
+            <div class="note">
+              <b>Проверка:</b> в базовой версии программы ментор проверяет по
+              таблице критериев. Критерии записаны так, что каждый можно
+              превратить в автотест. Эталонное решение есть у ментора.
+            </div>
+            <div class="note">
+              <b>Если итоговое задание не сдано:</b> вернитесь к заданию по той
+              подтеме, где не выполнен критерий (колонка «Подтема»).
+            </div>
+          </article>
+
+          <div class="pager">
+            <a href="index.html"
+              ><div class="dir">← Назад</div>
+              <div class="ttl">Все модули</div></a
+            >
+            <a class="next" href="module2.html"
+              ><div class="dir">Дальше →</div>
+              <div class="ttl">Модуль 2. Prompt и структура</div></a
+            >
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="container">AI Upskilling · Модуль 1 · KnowledgeBot</div>
+    </footer>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1731 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Модуль 3 — AI-assisted SDLC с coding agents</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="container">
+        <span class="brand"><a href="index.html">← AI Upskilling</a></span>
+        <nav>
+          <a href="#theory">Теория</a>
+          <a href="#project">Проект</a>
+          <a href="#t1">3.1</a>
+          <a href="#t2">3.2</a>
+          <a href="#t3">3.3</a>
+          <a href="#t4">3.4</a>
+          <a href="#t5">3.5</a>
+          <a href="#final">Итог</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="container">
+      <section class="module-hero">
+        <span class="num">Модуль 3</span>
+        <h1>AI-assisted SDLC с coding agents</h1>
+        <p>
+          Цель модуля — научиться работать с coding agent как с управляемым
+          процессом: правила → спецификация → реализация с тестами → проверка →
+          PR. Результат модуля — способ работы, а не код. Поэтому проверяются
+          артефакты: файлы правил, спецификация, история коммитов, журнал
+          <code>docs/notes.md</code>, PR и заметка о решениях.
+        </p>
+        <div class="note">
+          <b>Как проходить модуль.</b> Сначала курсы теории, затем задания
+          3.1–3.5. Задание по теме, которую вы уверенно знаете, можно
+          пропустить: итоговое задание покажет, если в ней есть пробел. Модуль
+          засчитан, когда итоговое задание выполнено по всем критериям.
+        </div>
+        <div class="note">
+          <b>Как проверяется.</b> Все задания, включая итоговое, вы проверяете
+          сами. Порядок: сделали задание → прошли по критериям готовности →
+          только потом открыли пример решения и сравнили. Каждый критерий
+          проверяется командой, через git или по записи в
+          <code>docs/notes.md</code>. Если критерий не выполнен, вернитесь к
+          заданию, а не к решению.
+        </div>
+        <div class="note">
+          <b>Инструмент и стек:</b> основной инструмент —
+          <b>Claude Code</b>. Copilot и Cursor встречаются в задании 3.1 и в
+          необязательном сравнении. Учебный проект: TypeScript, Node.js 20+,
+          Express, Vitest, ESLint.
+        </div>
+      </section>
+
+      <div class="layout">
+        <aside class="toc">
+          <h4>Модуль</h4>
+          <ol>
+            <li><a href="#theory">Теория и темы модуля</a></li>
+            <li><a href="#project">Учебный проект</a></li>
+            <li><a href="#t1">Правила агента</a></li>
+            <li><a href="#t2">Отладка и тесты</a></li>
+            <li><a href="#t3">Spec Kit</a></li>
+            <li><a href="#t4">Агентный режим и проверка</a></li>
+            <li><a href="#t5">Команды, hooks, MCP</a></li>
+            <li><a href="#final">Итоговое задание</a></li>
+            <li><a href="#extra">Дополнительно</a></li>
+          </ol>
+        </aside>
+
+        <main>
+          <!-- THEORY -->
+          <article class="task theory" id="theory">
+            <span class="chip">Теория</span>
+            <h2>Курсы и темы модуля</h2>
+
+            <h3>Курсы модуля</h3>
+            <p>Все 8 курсов обязательны.</p>
+            <table>
+              <tr>
+                <th>Курс</th>
+                <th>Задания</th>
+              </tr>
+              <tr>
+                <td>AI-Assisted Engineering (2h30)</td>
+                <td>3.2</td>
+              </tr>
+              <tr>
+                <td>GitHub Copilot Capabilities (1h)</td>
+                <td>3.1, 3.4, 3.5</td>
+              </tr>
+              <tr>
+                <td>AI SDLC: Cursor Basics 101 (2h15)</td>
+                <td>3.1, 3.2, 3.5</td>
+              </tr>
+              <tr>
+                <td>EngX.AI Bootcamp for Software Engineers (4h30)</td>
+                <td>3.3, 3.4, итог</td>
+              </tr>
+              <tr>
+                <td>AI-Native SDLC and Modernization (34 min)</td>
+                <td>3.1, 3.5, итог</td>
+              </tr>
+              <tr>
+                <td>Spec-Driven Development with GitHub Spec Kit (48 min)</td>
+                <td>3.3</td>
+              </tr>
+              <tr>
+                <td>Claude Code in Action by Anthropic (1h11)</td>
+                <td>3.1, 3.5</td>
+              </tr>
+              <tr>
+                <td>Structured Vibe Coding with AI Coding Agents (1h20)</td>
+                <td>3.1, 3.4</td>
+              </tr>
+            </table>
+
+            <h3>Темы модуля и где они отрабатываются</h3>
+            <p>
+              Каждая тема курсов модуля закреплена шагом задания или критерием
+              итогового задания.
+            </p>
+            <table>
+              <tr>
+                <th>Тема</th>
+                <th>Где отрабатывается</th>
+              </tr>
+              <tr>
+                <td>Тесты с бизнес-смыслом, а не по коду</td>
+                <td>3.2, T-1</td>
+              </tr>
+              <tr>
+                <td>Промпт «ошибка + код + ожидаемое поведение»</td>
+                <td>3.2, T-2</td>
+              </tr>
+              <tr>
+                <td>Декомпозиция: подзадачи, иерархия, зависимости</td>
+                <td>3.2, T-4</td>
+              </tr>
+              <tr>
+                <td>Правила проекта для Copilot</td>
+                <td>3.1</td>
+              </tr>
+              <tr>
+                <td>Выбор режима: inline, Ask, Agent</td>
+                <td>3.4</td>
+              </tr>
+              <tr>
+                <td>MCP для трекера задач</td>
+                <td>3.5</td>
+              </tr>
+              <tr>
+                <td>Галлюцинация импорта: проверить и вернуть ошибку агенту</td>
+                <td>3.2</td>
+              </tr>
+              <tr>
+                <td>Личные правила для всех проектов (User Rules)</td>
+                <td>3.1</td>
+              </tr>
+              <tr>
+                <td>Команда для повторяющегося промпта</td>
+                <td>3.5</td>
+              </tr>
+              <tr>
+                <td>Точная спецификация как главный контроль</td>
+                <td>3.3</td>
+              </tr>
+              <tr>
+                <td>Детерминированные проверки для вывода агента</td>
+                <td>3.4</td>
+              </tr>
+              <tr>
+                <td>Решение о merge принимает человек</td>
+                <td>3.4, итог</td>
+              </tr>
+              <tr>
+                <td>Уровни L0–L3, AI Champion, общие настройки в репозитории</td>
+                <td>3.5, итог</td>
+              </tr>
+              <tr>
+                <td>Контекстные файлы в репозитории, которые развиваются</td>
+                <td>3.1, итог</td>
+              </tr>
+              <tr>
+                <td>Метрики из системных данных, а не опросы</td>
+                <td>итог</td>
+              </tr>
+              <tr>
+                <td>Порядок шагов Spec Kit</td>
+                <td>3.3</td>
+              </tr>
+              <tr>
+                <td>Общие правила — в constitution</td>
+                <td>3.3</td>
+              </tr>
+              <tr>
+                <td>Разбор <code>NEEDS CLARIFICATION</code></td>
+                <td>3.3</td>
+              </tr>
+              <tr>
+                <td><code>CLAUDE.local.md</code></td>
+                <td>3.1</td>
+              </tr>
+              <tr>
+                <td><code>/compact</code> и <code>/clear</code></td>
+                <td>3.5</td>
+              </tr>
+              <tr>
+                <td>Hook <code>PreToolUse</code> блокирует чтение <code>.env</code></td>
+                <td>3.5</td>
+              </tr>
+              <tr>
+                <td>Человек — navigator, агент — driver</td>
+                <td>3.4</td>
+              </tr>
+              <tr>
+                <td>Ping-pong: сначала тесты, потом код</td>
+                <td>3.4</td>
+              </tr>
+              <tr>
+                <td>Популярный стек против внутреннего фреймворка</td>
+                <td>3.1</td>
+              </tr>
+            </table>
+
+            <h3>Таблица соответствий инструментов</h3>
+            <table>
+              <tr>
+                <th></th>
+                <th>Claude Code (основной)</th>
+                <th>Copilot</th>
+                <th>Cursor</th>
+              </tr>
+              <tr>
+                <td>Правила проекта</td>
+                <td><code>CLAUDE.md</code></td>
+                <td><code>.github/copilot-instructions.md</code>, <code>AGENTS.md</code></td>
+                <td><code>.cursor/rules</code>, <code>AGENTS.md</code></td>
+              </tr>
+              <tr>
+                <td>Личные правила</td>
+                <td><code>CLAUDE.local.md</code> (один проект), <code>~/.claude/CLAUDE.md</code> (все проекты)</td>
+                <td>пользовательские instructions</td>
+                <td>User Rules (все проекты)</td>
+              </tr>
+              <tr>
+                <td>Правила организации</td>
+                <td>managed <code>CLAUDE.md</code> (политика компании)</td>
+                <td>instructions организации</td>
+                <td>Team Rules</td>
+              </tr>
+              <tr>
+                <td>Режимы</td>
+                <td>обычный режим (агент), режим плана (<code>Shift+Tab</code>); автодополнения нет</td>
+                <td>inline completion, Ask, Plan, Agent</td>
+                <td>Tab, Ask, Agent</td>
+              </tr>
+              <tr>
+                <td>Остановить и откатить</td>
+                <td><code>Esc</code>, <code>/rewind</code> (двойной <code>Esc</code>)</td>
+                <td>Stop, откат правок</td>
+                <td>Stop, checkpoints</td>
+              </tr>
+              <tr>
+                <td>Свои команды</td>
+                <td><code>.claude/commands/*.md</code></td>
+                <td><code>.github/prompts/*.prompt.md</code></td>
+                <td><code>.cursor/commands/*.md</code></td>
+              </tr>
+              <tr>
+                <td>Hooks</td>
+                <td><code>.claude/settings.json</code></td>
+                <td>—</td>
+                <td>hooks</td>
+              </tr>
+              <tr>
+                <td>MCP</td>
+                <td><code>claude mcp add</code>, <code>.mcp.json</code></td>
+                <td><code>.vscode/mcp.json</code></td>
+                <td><code>.cursor/mcp.json</code></td>
+              </tr>
+              <tr>
+                <td>Контекст</td>
+                <td><code>/context</code>, <code>/compact</code>, <code>/clear</code>, режим плана</td>
+                <td>список ссылок под ответом</td>
+                <td>индикатор контекста</td>
+              </tr>
+            </table>
+          </article>
+
+          <!-- PROJECT -->
+          <article class="task theory" id="project">
+            <span class="chip">Учебный проект</span>
+            <h2>Team Tasks</h2>
+            <p>
+              Небольшой готовый сервис задач команды. Все задания модуля и
+              итоговое задание выполняются в нём, поэтому рабочий проект не
+              нужен. Проект создаётся одним скриптом.
+            </p>
+
+            <h3>Что заложено в проект</h3>
+            <table>
+              <tr>
+                <th>Что</th>
+                <th>Где</th>
+                <th>Для чего</th>
+              </tr>
+              <tr>
+                <td>Процент выполненных задач считается неверно</td>
+                <td><code>src/stats.ts</code></td>
+                <td>3.2: тесты с бизнес-смыслом</td>
+              </tr>
+              <tr>
+                <td><code>GET /tasks/recent</code> падает с ошибкой</td>
+                <td><code>src/storage.ts</code></td>
+                <td>3.2: исправление по промпту «ошибка + код + ожидаемое»</td>
+              </tr>
+              <tr>
+                <td>Пагинация пропускает первую страницу</td>
+                <td><code>src/storage.ts</code></td>
+                <td>3.4: «сначала тесты»</td>
+              </tr>
+              <tr>
+                <td><code>console.log</code> вместо готового логгера <code>src/log.ts</code></td>
+                <td>несколько файлов</td>
+                <td>3.4: правка в нескольких файлах</td>
+              </tr>
+              <tr>
+                <td><code>.env</code> с фейковым секретом</td>
+                <td>корень проекта</td>
+                <td>3.5: hook, запрещающий чтение</td>
+              </tr>
+              <tr>
+                <td>Всего один тест</td>
+                <td><code>tests/api.test.ts</code></td>
+                <td>весь модуль</td>
+              </tr>
+              <tr>
+                <td><code>BACKLOG.md</code> с тикетами T-1…T-7</td>
+                <td>корень проекта</td>
+                <td>задания и итоговое задание</td>
+              </tr>
+              <tr>
+                <td>Журнал модуля с разделами по заданиям</td>
+                <td><code>docs/notes.md</code></td>
+                <td>промпты, ошибки агента и решения; по нему вы проверяете себя</td>
+              </tr>
+            </table>
+
+            <h3>Запуск</h3>
+            <pre><code>node make-project.mjs
+cd team-tasks
+npm install
+git init &amp;&amp; git add -A &amp;&amp; git commit -m "chore: initial project"
+npm run check                    # tsc --noEmit, eslint, vitest</code></pre>
+
+            <details>
+              <summary>Скрипт make-project.mjs</summary>
+              <div class="body">
+                <pre><code>// make-project.mjs — создаёт учебный проект team-tasks для модуля 3
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+
+const packageJson = {
+  name: "team-tasks",
+  private: true,
+  type: "module",
+  scripts: {
+    dev: "tsx watch src/server.ts",
+    test: "vitest run",
+    lint: "eslint .",
+    typecheck: "tsc --noEmit",
+    check: "tsc --noEmit &amp;&amp; eslint . &amp;&amp; vitest run",
+  },
+  dependencies: {
+    express: "^5.1.0",
+  },
+  devDependencies: {
+    "@eslint/js": "^9.20.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "@types/supertest": "^6.0.2",
+    eslint: "^9.20.0",
+    supertest: "^7.0.0",
+    tsx: "^4.19.0",
+    typescript: "^5.7.0",
+    "typescript-eslint": "^8.24.0",
+    vitest: "^3.0.0",
+  },
+};
+
+const FILES = {
+  "src/log.ts": `type Level = "info" | "warn" | "error";
+
+export type Logger = Record&lt;Level, (msg: string, extra?: Record&lt;string, unknown&gt;) =&gt; void&gt;;
+
+export function getLogger(name: string): Logger {
+  const write = (level: Level) =&gt; (msg: string, extra: Record&lt;string, unknown&gt; = {}) =&gt; {
+    process.stdout.write(JSON.stringify({ level, logger: name, msg, ...extra }) + "\\n");
+  };
+  return { info: write("info"), warn: write("warn"), error: write("error") };
+}
+`,
+  "src/stats.ts": `/** Доля выполненных задач в процентах. */
+export function percent(done: number, total: number): number {
+  if (total === 0) {
+    return 0;
+  }
+  return Math.round(((done * total) / 100) * 10) / 10;
+}
+`,
+  "src/storage.ts": `export interface Task {
+  id: number;
+  title: string;
+  done: boolean;
+}
+
+export class TaskNotFoundError extends Error {}
+
+let nextId = 1;
+export const tasks = new Map&lt;number, Task&gt;();
+
+export function addTask(title: string): Task {
+  const task: Task = { id: nextId++, title, done: false };
+  tasks.set(task.id, task);
+  console.log("task created", task.id);
+  return task;
+}
+
+export function listTasks(): Task[] {
+  return [...tasks.values()];
+}
+
+export function recent(n = 3): Pick&lt;Task, "id" | "title"&gt;[] {
+  const all = listTasks();
+  return Array.from({ length: n }, (_, i) =&gt; {
+    const task = all[all.length - i];
+    return { id: task.id, title: task.title };
+  });
+}
+
+export function paginate&lt;T&gt;(items: T[], page: number, perPage: number): T[] {
+  // страницы нумеруются с 1
+  const start = page * perPage;
+  return items.slice(start, start + perPage);
+}
+
+export function complete(taskId: number): Task {
+  const task = tasks.get(taskId);
+  if (!task) {
+    throw new TaskNotFoundError(String(taskId));
+  }
+  task.done = true;
+  return task;
+}
+`,
+  "src/app.ts": `import express from "express";
+
+import { percent } from "./stats";
+import * as storage from "./storage";
+
+export const app = express();
+app.use(express.json());
+
+interface NewTask {
+  title: string;
+}
+
+app.post("/tasks", (req, res) =&gt; {
+  const body = req.body as NewTask;
+  res.json(storage.addTask(body.title));
+});
+
+app.get("/tasks", (req, res) =&gt; {
+  const page = Number(req.query.page ?? 1);
+  const perPage = Number(req.query.per_page ?? 10);
+  res.json(storage.paginate(storage.listTasks(), page, perPage));
+});
+
+app.get("/tasks/recent", (_req, res) =&gt; {
+  res.json(storage.recent());
+});
+
+app.post("/tasks/:id/done", (req, res) =&gt; {
+  const id = Number(req.params.id);
+  try {
+    res.json(storage.complete(id));
+  } catch (err) {
+    if (err instanceof storage.TaskNotFoundError) {
+      console.log("task not found", id);
+      res.status(404).json({ detail: "Task not found" });
+      return;
+    }
+    throw err;
+  }
+});
+
+app.get("/stats", (_req, res) =&gt; {
+  const all = storage.listTasks();
+  const done = all.filter((t) =&gt; t.done).length;
+  res.json({ total: all.length, done, percent: percent(done, all.length) });
+});
+`,
+  "src/server.ts": `import { app } from "./app";
+
+const port = Number(process.env.PORT ?? 3000);
+app.listen(port, () =&gt; {
+  console.log("Team Tasks listening on port", port);
+});
+`,
+  "tests/api.test.ts": `import request from "supertest";
+import { describe, expect, it } from "vitest";
+
+import { app } from "../src/app";
+
+describe("POST /tasks", () =&gt; {
+  it("creates a task", async () =&gt; {
+    const res = await request(app).post("/tasks").send({ title: "Написать README" });
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe("Написать README");
+  });
+});
+`,
+  "package.json": JSON.stringify(packageJson, null, 2) + "\n",
+  "tsconfig.json": `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["src", "tests"]
+}
+`,
+  "eslint.config.js": `import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+  { ignores: ["node_modules/", ".claude/", ".specify/"] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+);
+`,
+  ".env": "SECRET_KEY=dev-only-not-a-real-secret\n",
+  ".gitignore": "node_modules/\n.env\n.tmp/\nCLAUDE.local.md\n.claude/settings.local.json\n",
+  "README.md": `# Team Tasks
+
+Учебный сервис задач команды для модуля 3.
+
+    npm install
+    npm run dev     # сервер на http://localhost:3000
+    npm run check   # tsc --noEmit, eslint, vitest
+`,
+  "docs/notes.md": `# Журнал модуля 3
+
+Промпты, ошибки агента и решения по заданиям. По этому файлу и истории коммитов вы проверяете себя по критериям.
+
+## 3.1 Правила
+
+## 3.2 Отладка и тесты
+
+## 3.3 Spec Kit
+
+## 3.4 Агентный режим
+
+## 3.5 Команды, hooks, MCP
+`,
+  "BACKLOG.md": `# Бэклог
+
+- T-1 (баг): /stats показывает неверный процент выполненных задач.
+- T-2 (баг): GET /tasks/recent падает с ошибкой 500.
+- T-3 (баг): GET /tasks?page=1 не показывает первые задачи.
+- T-4 (фича): Allow users to export their data.
+- T-5 (фича): Валидация названия задачи.
+- T-6 (долг): В коде console.log вместо логгера src/log.ts.
+- T-7 (эпик): Пользователи забывают про задачи. Нужно напоминать о сроках.
+`,
+};
+
+for (const [path, content] of Object.entries(FILES)) {
+  const file = join("team-tasks", path);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, content, "utf8");
+}
+console.log("Готово: проект в папке team-tasks/");</code></pre>
+              </div>
+            </details>
+            <div class="note">
+              Скрипт открыт целиком, но читать его до заданий не нужно: баги
+              полезнее искать в проекте с агентом, как в реальной работе.
+            </div>
+          </article>
+
+          <!-- TASK 3.1 -->
+          <article class="task" id="t1">
+            <span class="chip">Задание 3.1</span>
+            <h2>Правила агента: проект и личные</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> Claude Code in Action; GitHub Copilot Capabilities; Cursor Basics 101; AI-Native SDLC; Structured Vibe Coding</span>
+              <span><b>Время:</b> ~50 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> настраиваем постоянные правила для
+              агента на двух уровнях. <strong>Зачем:</strong> без правил агент
+              каждый раз пишет «типовой» код и спрашивает одно и то же. Правила
+              проекта общие для команды и лежат в репозитории, личные — только
+              ваши и в репозиторий не попадают. Агент знает популярный стек
+              (Express, Node) по открытому коду, а всё своё в проекте, как
+              логгер <code>src/log.ts</code>, ему нужно описать.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                <b>До правил.</b> В новой сессии Claude Code попросите добавить
+                логирование в обработчик <code>POST /tasks/:id/done</code> и
+                посмотрите, чем агент логирует. Откатите правку:
+                <code>git restore .</code>.
+              </li>
+              <li>
+                Создайте <code>CLAUDE.md</code>: стек, команды запуска и
+                проверки, конвенции (логгер <code>src/log.ts</code>, тесты в
+                <code>tests/</code>), запреты (не менять файлы вне задачи, не
+                добавлять зависимости без запроса, не делать push и merge).
+              </li>
+              <li>
+                Создайте <code>CLAUDE.local.md</code> с личным предпочтением для
+                этого проекта (например, своя команда запуска тестов) и
+                убедитесь, что он не коммитится.
+              </li>
+              <li>
+                Добавьте личное правило для всех проектов в
+                <code>~/.claude/CLAUDE.md</code>, например «отвечай кратко, без
+                пересказа сделанного». Это аналог User Rules в Cursor.
+              </li>
+              <li>
+                Перенесите правила проекта в
+                <code>.github/copilot-instructions.md</code> и
+                <code>.cursor/rules</code> так, как требует каждый инструмент.
+              </li>
+              <li>
+                <b>После правил.</b> В новой сессии повторите просьбу из шага 1 и
+                сравните результат.
+              </li>
+              <li>
+                <b>Правила развиваются.</b> До конца модуля, когда агент
+                повторяет одну и ту же ошибку, добавляйте правило в
+                <code>CLAUDE.md</code> отдельным коммитом.
+              </li>
+            </ol>
+
+            <h3>В Copilot и Cursor</h3>
+            <div class="note">
+              <b>Правила проекта.</b>
+              <ul class="cond">
+                <li>
+                  <b>Аналог:</b> в Copilot — <code>.github/copilot-instructions.md</code>,
+                  в Cursor — <code>.cursor/rules/*.mdc</code>. Оба читают и
+                  <code>AGENTS.md</code> в корне репозитория. Файл попадает в
+                  контекст каждого запроса сам, его не нужно прикладывать.
+                </li>
+                <li>
+                  <b>С чем путают:</b> общий шаблон промпта, который каждый
+                  копирует вручную, — его забывают и меняют под себя. Правила в
+                  комментариях исходников агент видит, только когда открыт этот
+                  файл. Смена модели не помогает: никакая модель не знает
+                  конвенций вашего проекта.
+                </li>
+                <li>
+                  <b>Если есть Copilot (необязательно):</b> откройте проект в VS
+                  Code и спросите в режиме Ask: «каким логгером пользоваться в
+                  этом проекте?» В ответе должен быть <code>src/log.ts</code>, а в
+                  списке ссылок под ответом — файл
+                  <code>.github/copilot-instructions.md</code>.
+                </li>
+                <li>
+                  <b>В журнал:</b> чем файл правил в репозитории лучше общего
+                  шаблона промпта.
+                </li>
+              </ul>
+            </div>
+            <div class="note">
+              <b>Личные правила для всех проектов.</b>
+              <ul class="cond">
+                <li>
+                  <b>Аналог:</b> в Cursor — User Rules (Cursor Settings → Rules):
+                  хранятся в настройках редактора и действуют в каждом проекте. В
+                  Copilot — пользовательские instructions в настройках VS Code.
+                </li>
+                <li>
+                  <b>С чем путают:</b> Project Rules
+                  (<code>.cursor/rules/*.mdc</code>) лежат в репозитории и
+                  действуют на один проект для всей команды. Team Rules задаёт
+                  организация централизованно. <code>AGENTS.md</code> тоже лежит в
+                  репозитории — это правила проекта, а не личные.
+                </li>
+                <li>
+                  <b>В журнал:</b> куда вы положили бы правило «отвечай кратко»
+                  в Cursor и почему не в <code>.cursor/rules</code>.
+                </li>
+              </ul>
+            </div>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                <code>CLAUDE.md</code> короче 60 строк и содержит 4 раздела:
+                стек, команды, конвенции, запреты.
+              </li>
+              <li><code>git status</code> не показывает <code>CLAUDE.local.md</code>.</li>
+              <li>
+                Глобальное правило срабатывает в сессии, запущенной в другой
+                папке (например, <code>cd /tmp &amp;&amp; claude</code>).
+              </li>
+              <li>Правила для Copilot и Cursor лежат в правильных файлах.</li>
+              <li>
+                В новой сессии агент использует <code>src/log.ts</code>, а не
+                <code>console.log</code>. В <code>docs/notes.md</code> записано,
+                чем агент логировал до и после <code>CLAUDE.md</code> и почему.
+              </li>
+              <li>
+                К итоговому заданию <code>git log --oneline -- CLAUDE.md</code>
+                показывает не меньше 3 коммитов: создание и две правки.
+              </li>
+              <li>
+                В <code>docs/notes.md</code> — две строки из блока «В Copilot и
+                Cursor»: про файл правил и про личное правило в Cursor.
+              </li>
+              <li>
+                В <code>docs/notes.md</code>: какой стек вы выбрали бы для нового
+                сервиса, который в основном будут писать агенты, — популярный или
+                внутренний фреймворк компании, и почему. Опирайтесь на то, что
+                увидели в шагах 1 и 6.
+              </li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Команда <code>/init</code> создаёт черновик
+                    <code>CLAUDE.md</code> по коду проекта. Сократите его до
+                    главного: агент читает файл в каждой сессии, и лишнее
+                    занимает контекст.
+                  </li>
+                  <li>
+                    В новых версиях Claude Code вместо
+                    <code>CLAUDE.local.md</code> рекомендуют импорт личного
+                    файла из домашней папки (<code>@~/.claude/…</code>).
+                    Подойдёт любой вариант: главное, что личные правила не в
+                    репозитории.
+                  </li>
+                  <li>
+                    Три уровня: <code>CLAUDE.md</code> — команда и один проект,
+                    <code>CLAUDE.local.md</code> — вы и один проект,
+                    <code>~/.claude/CLAUDE.md</code> — вы и все проекты.
+                  </li>
+                  <li>
+                    Cursor и Copilot читают ещё и <code>AGENTS.md</code>. Чтобы
+                    не дублировать правила, держите общий текст в
+                    <code>AGENTS.md</code>, а в <code>CLAUDE.md</code>
+                    подключите его строкой <code>@AGENTS.md</code>.
+                  </li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать пример решения</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code># CLAUDE.md
+## Стек
+- TypeScript (strict), Node.js 20+, Express 5, Vitest + supertest, ESLint.
+- Хранилище — в памяти (src/storage.ts). Сборки нет, запуск через tsx.
+
+## Команды
+- Запуск: npm run dev
+- Проверка: npm run check (tsc --noEmit, eslint, vitest). Запускай после каждой правки.
+
+## Конвенции
+- Логирование только через getLogger() из src/log.ts, никаких console.log.
+- Без any и без non-null assertion (!), типы входных данных описывай явно.
+- Тесты — в tests/, файл &lt;модуль&gt;.test.ts, describe по эндпойнту или функции.
+- Новый эндпойнт: тип запроса и роут в src/app.ts, логика в src/storage.ts, тест.
+- Коммиты: test: / feat: / fix: / chore: и номер тикета, например "test: title validation (T-5)".
+
+## Запреты
+- Не меняй файлы, которые не относятся к задаче.
+- Не добавляй зависимости без моего согласия.
+- Не читай и не выводи .env.
+- Не делай git push и merge: это решает человек после ревью.</code></pre>
+                <pre><code># CLAUDE.local.md — не коммитится (есть в .gitignore)
+- Тесты запускай так: npx vitest run --bail 1
+- Перед правкой показывай план из 3–5 пунктов.</code></pre>
+                <pre><code># ~/.claude/CLAUDE.md — для всех проектов на этом ноутбуке
+- Отвечай кратко, без пересказа того, что ты сделал.</code></pre>
+                <pre><code># docs/notes.md, раздел 3.1 (пример)
+До CLAUDE.md агент добавил console.log("task done", id): про src/log.ts он не знал,
+это «внутренний» код, которого нет в открытых проектах. После правила — getLogger("app").</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> правила в репозитории делают поведение агента
+              одинаковым для всей команды и улучшаются вместе с проектом. Именно
+              это отличает команды с большим приростом продуктивности от команд,
+              где каждый пишет свои промпты. И поэтому для работы с агентами
+              выбирают популярный стек: всё, чего нет в открытом коде, агенту
+              приходится объяснять.
+            </div>
+          </article>
+
+          <!-- TASK 3.2 -->
+          <article class="task" id="t2">
+            <span class="chip">Задание 3.2</span>
+            <h2>Отладка, тесты и декомпозиция</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> AI-Assisted Engineering; Cursor Basics 101</span>
+              <span><b>Время:</b> ~60 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> промпты для тестов, исправления бага и
+              разбиения задачи. <strong>Зачем:</strong> если дать агенту только
+              код, он напишет тесты, которые подтверждают баг. Если сказать
+              только «почини», исправление будет наугад.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                <b>T-1.</b> Попросите тесты для <code>percent()</code> из
+                <code>src/stats.ts</code>, передав
+                только код. Посмотрите, что проверяют эти тесты. Затем повторите,
+                добавив бизнес-смысл: что функция должна возвращать.
+              </li>
+              <li>
+                <b>T-2.</b> Исправьте падение <code>GET /tasks/recent</code>
+                промптом из трёх частей: точное сообщение об ошибке, фрагмент
+                кода, ожидаемое поведение.
+              </li>
+              <li>
+                <b>T-4.</b> Разбейте расплывчатый тикет на подзадачи: каждая
+                независимо полезна, есть иерархия и зависимости.
+              </li>
+              <li>
+                <b>Галлюцинация.</b> Создайте <code>src/export-draft.ts</code> с
+                кодом ниже — так агент мог ответить на просьбу «сделай экспорт в
+                CSV». Запустите <code>npm run check</code>, проверьте по
+                документации Express, есть ли такая функция, и верните ошибку
+                агенту как обратную связь. Затем удалите файл: T-4 полностью
+                делается в 3.3.
+              </li>
+            </ol>
+            <pre><code>import { toCsv } from "express";
+
+import type { Task } from "./storage";
+
+export function exportCsv(tasks: Task[]): string {
+  return toCsv(tasks, { header: true });
+}</code></pre>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                Тесты из второго промпта для T-1 <b>падают</b> на исходном коде и
+                проходят после исправления.
+              </li>
+              <li>
+                Промпт для T-2 из трёх частей записан в
+                <code>docs/notes.md</code>.
+              </li>
+              <li>
+                В <code>docs/notes.md</code> — ошибка <code>tsc</code> из шага 4,
+                ссылка на документацию и ваш промпт с обратной связью.
+              </li>
+              <li>
+                Декомпозиция T-4 записана в <code>docs/T-4.md</code>: подзадачи,
+                иерархия, зависимости.
+              </li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Сначала добейтесь, чтобы тест упал, и только потом
+                    исправляйте код. Тест, который не падал ни разу, ничего не
+                    доказывает.
+                  </li>
+                  <li>
+                    Подумайте, почему <code>tsc</code> не заметил ошибку в
+                    <code>recent()</code>. Посмотрите опцию
+                    <code>noUncheckedIndexedAccess</code> в
+                    <code>tsconfig.json</code>: это ещё одна детерминированная
+                    проверка, которая ловит такие баги до запуска.
+                  </li>
+                  <li>
+                    Сообщение об ошибке и стек возьмите из вывода
+                    <code>npm run dev</code> после запроса
+                    <code>curl localhost:3000/tasks/recent</code>. В тестах
+                    Express стек не печатает, там будет только статус 500.
+                  </li>
+                  <li>
+                    Обратная связь агенту — это факт, а не «попробуй ещё»: точное
+                    сообщение компилятора и то, что вы нашли в документации.
+                  </li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать пример решения</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code>Промпт для тестов T-1:
+Напиши Vitest-тесты для percent() в src/stats.ts, файл tests/stats.test.ts.
+Назначение функции: доля выполненных задач в процентах.
+Примеры: 5 из 10 — 50; 1 из 3 — 33.3; 0 задач — 0; 10 из 10 — 100.
+Тесты должны проверять это поведение, а не текущую реализацию. Код пока не меняй.
+
+Промпт для исправления T-2:
+GET /tasks/recent отвечает 500, в логе сервера:
+TypeError: Cannot read properties of undefined (reading 'id')
+    at src/storage.ts:27:23
+Функция recent():
+    const task = all[all.length - i];
+    return { id: task.id, title: task.title };
+Ожидаемое поведение: вернуть до n последних задач, новые первыми;
+при пустом списке — пустой массив. Исправь и добавь тесты на 0, 2 и 5 задач.
+
+Обратная связь по галлюцинации:
+npm run check: src/export-draft.ts(1,10): error TS2305:
+Module '"express"' has no exported member 'toCsv'.
+В документации Express такой функции нет. Сделай экспорт в CSV без новых
+зависимостей: заголовок id,title,done и по строке на задачу.</code></pre>
+                <pre><code># docs/T-4.md — Export: декомпозиция
+1. Формат экспорта (решение: JSON и CSV) — без зависимостей
+2. Функция exportTasks(format: "json" | "csv") в src/storage.ts — зависит от 1
+   2.1 JSON
+   2.2 CSV
+3. Эндпойнт GET /tasks/export?format=json|csv — зависит от 2
+4. Тесты: пустой список, оба формата, неизвестный формат → 422 — зависит от 3
+Открытый вопрос к владельцу продукта: экспорт всех задач или только своих?</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> агент восстанавливает намерение по коду, поэтому
+              бизнес-смысл нужно передавать явно. Точная ошибка, код и ожидаемое
+              поведение превращают «почини» в задачу с понятным результатом.
+            </div>
+          </article>
+
+          <!-- TASK 3.3 -->
+          <article class="task" id="t3">
+            <span class="chip">Задание 3.3</span>
+            <h2>Spec Kit: от расплывчатого тикета к задачам</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> Spec-Driven Development with GitHub Spec Kit; EngX.AI Bootcamp</span>
+              <span><b>Время:</b> ~90 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> реализуем T-4 через полный цикл Spec
+              Kit. <strong>Зачем:</strong> неточное требование — главная
+              причина того, что агент делает «не то». Спецификация задаёт и
+              цель, и критерии приёмки.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                Установите Spec Kit в проект:
+                <code>uvx --from git+https://github.com/github/spec-kit.git specify init --here --ai claude</code>.
+              </li>
+              <li>
+                <b>Constitution:</b> правила, которые действуют на каждом шаге —
+                тесты сначала, без новых зависимостей без обоснования, только
+                локальный запуск.
+              </li>
+              <li><b>Specify</b> по тикету T-4.</li>
+              <li>
+                Разберите все метки <code>NEEDS CLARIFICATION</code>: ответьте
+                на вопросы или поправьте спецификацию, затем проверьте её.
+              </li>
+              <li><b>Plan → tasks → implement.</b></li>
+            </ol>
+            <div class="note">
+              Названия команд зависят от версии Spec Kit:
+              <code>/speckit.constitution</code>, <code>/speckit.specify</code>,
+              <code>/speckit.clarify</code>, <code>/speckit.plan</code>,
+              <code>/speckit.tasks</code>, <code>/speckit.implement</code>. В
+              старых версиях — <code>/constitution</code>,
+              <code>/specify</code>, <code>/plan</code>, <code>/tasks</code>.
+            </div>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>В constitution не меньше 3 проверяемых правил.</li>
+              <li>
+                В спецификации перед запуском plan нет меток
+                <code>NEEDS CLARIFICATION</code>.
+              </li>
+              <li>
+                Есть файл задач, и реализация закрывает все критерии приёмки из
+                спецификации.
+              </li>
+              <li><code>npm run check</code> проходит.</li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Spec Kit — утилита на Python, но проект может быть на любом
+                    языке. Для установки нужен <code>uv</code>
+                    (<code>brew install uv</code>, <code>pip install uv</code>
+                    или по инструкции на сайте uv).
+                  </li>
+                  <li>
+                    Правило в constitution проверяемое, если можно ответить «да»
+                    или «нет»: «у каждой экспортируемой функции в src/ есть
+                    тест», а не «код должен быть качественным».
+                  </li>
+                  <li>
+                    Метки <code>NEEDS CLARIFICATION</code> — это вопросы к вам.
+                    Если пропустить их, решения за вас примет агент.
+                  </li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать пример решения</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code># constitution.md (фрагмент)
+## Принципы
+1. Тесты сначала: новая функция появляется только после падающего теста.
+2. Без новых зависимостей: если нужна библиотека — обоснование в plan.md.
+3. Только локальный запуск: никаких внешних сервисов и сетевых вызовов.
+4. npm run check проходит перед каждым коммитом; any и @ts-ignore запрещены.</code></pre>
+                <pre><code>Ответы на NEEDS CLARIFICATION для T-4 (пример):
+- Что экспортируется? Все задачи, без фильтров. Фильтры — отдельный тикет.
+- Какие форматы? JSON и CSV.
+- Что при пустом списке? JSON — [], CSV — только строка заголовков.
+- Нужна ли авторизация? Нет, в проекте её пока нет.</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> главный контроль над результатом агента —
+              точная спецификация. Правила, общие для всех фич, живут в
+              constitution, а не повторяются в каждом описании.
+            </div>
+          </article>
+
+          <!-- TASK 3.4 -->
+          <article class="task" id="t4">
+            <span class="chip">Задание 3.4</span>
+            <h2>Агентный режим, «сначала тесты» и проверка</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> Structured Vibe Coding; EngX.AI Bootcamp; GitHub Copilot Capabilities</span>
+              <span><b>Время:</b> ~75 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> работаем с агентом в цикле «план →
+              тесты → код → проверка». <strong>Зачем:</strong> вывод агента
+              недетерминирован, поэтому его нужно сочетать с детерминированными
+              проверками. Человек — navigator: задаёт направление, проверяет,
+              останавливает и откатывает агента. Агент — driver: пишет код.
+              Решение «готово к merge» остаётся за человеком.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>Работайте в отдельной ветке, например <code>task-3.4</code>.</li>
+              <li>
+                <b>T-3 и T-5 по принципу ping-pong:</b> сначала агент пишет тесты
+                на правило (ping) — коммит; затем меняет код, пока тесты не
+                пройдут (pong) — коммит.
+              </li>
+              <li>
+                <b>Выбор режима.</b> Перед T-6 включите режим плана и задайте
+                вопрос без правок: «где в проекте console.log и как их
+                заменить?» Это аналог Ask: агент читает код, но ничего не меняет.
+              </li>
+              <li>
+                <b>T-6 в агентном режиме:</b> замена <code>console.log</code> на
+                логгер во всех файлах и правило ESLint <code>no-console</code>,
+                чтобы <code>console.log</code> не вернулся. Агент сам запускает
+                <code>npm run check</code> и исправляет ошибки, пока проверка не
+                пройдёт.
+              </li>
+              <li>
+                <b>Navigator.</b> Хотя бы раз остановите агента
+                (<code>Esc</code>), когда он уходит не туда, и хотя бы раз
+                откатите его правку (<code>/rewind</code>).
+              </li>
+              <li>
+                Прочитайте весь diff и найдите хотя бы одно замечание: лишняя
+                правка, пропущенный случай, слабый тест.
+              </li>
+              <li>
+                Слейте ветку в <code>main</code> сами, после ревью. Агент push и
+                merge не делает: это запрет из <code>CLAUDE.md</code>.
+              </li>
+            </ol>
+
+            <h3>В Copilot и Cursor</h3>
+            <div class="note">
+              <b>Режимы работы.</b>
+              <ul class="cond">
+                <li>
+                  <b>Аналог:</b> в Copilot inline completion — подсказка у
+                  курсора; Ask — отвечает и исследует код без изменений; Plan —
+                  исследует задачу и составляет план на ревью; Agent — меняет
+                  несколько файлов, запускает команды в терминале и повторяет,
+                  пока цель не достигнута. В Cursor — Tab, Ask и Agent. В Claude
+                  Code режим плана соответствует Ask и Plan, обычный режим —
+                  Agent, аналога inline нет. В старых версиях Copilot был ещё
+                  режим Edit.
+                </li>
+                <li>
+                  <b>С чем путают:</b> Ask и Plan не меняют код и не запускают
+                  тесты, поэтому задачу «правка в нескольких файлах и тесты до
+                  зелёного» они не решат. Inline completion работает в одной
+                  точке файла и ничего не запускает.
+                </li>
+                <li>
+                  <b>В журнал:</b> какой режим Copilot подошёл бы к каждому шагу
+                  этого задания и почему.
+                </li>
+              </ul>
+            </div>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                В истории коммит с тестами идёт раньше коммита с реализацией, и
+                на коммите с тестами они красные.
+              </li>
+              <li><code>npm run check</code> проходит.</li>
+              <li><code>git diff --stat</code> показывает изменения только в файлах задачи.</li>
+              <li>Есть хотя бы одно замечание из ревью и его исправление.</li>
+              <li>
+                В <code>docs/notes.md</code>: какие шаги вы делали в режиме
+                плана, а какие в агентном, и какой режим Copilot (inline, Ask,
+                Plan, Agent) подошёл бы к каждому, с одной фразой «почему».
+              </li>
+              <li>
+                В <code>docs/notes.md</code>: когда вы остановили или откатили
+                агента и почему.
+              </li>
+              <li>Merge в <code>main</code> сделан вами после ревью, а не агентом.</li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    Режим плана в Claude Code включается сочетанием
+                    <code>Shift+Tab</code>: агент показывает план и ничего не
+                    меняет, пока вы не согласитесь.
+                  </li>
+                  <li>
+                    Проверить, что тесты были красными:
+                    <code>git checkout &lt;коммит с тестами&gt; &amp;&amp; npm test</code>,
+                    затем <code>git checkout -</code>.
+                  </li>
+                  <li>
+                    <code>Esc</code> останавливает агента и сохраняет историю: можно
+                    сразу поправить направление. <code>/rewind</code> (или двойной
+                    <code>Esc</code>) возвращает код и диалог к точке до правки.
+                  </li>
+                  <li>
+                    Перед сессией с агентом сделайте коммит: так любую неудачную
+                    правку можно откатить и через git.
+                  </li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать пример решения</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code>Ping (T-5):
+Напиши тесты в tests/validation.test.ts на правило для POST /tasks:
+название — строка от 3 до 100 символов, пробелы по краям обрезаются;
+пустое, из одних пробелов, не строка или поля нет → 422 и { detail }.
+Только тесты, код не меняй.
+
+Pong:
+Измени src/app.ts так, чтобы тесты из tests/validation.test.ts прошли.
+Тесты не меняй, новых зависимостей не добавляй. После правки запусти npm run check.</code></pre>
+                <pre><code>$ git log --oneline
+c3d9e21 feat: validate task title (T-5)
+a81f0b4 test: title validation rules (T-5)   # здесь тесты красные
+5e2c7aa fix: pagination starts from page 1 (T-3)
+1b44d09 test: pagination first page (T-3)    # здесь тесты красные</code></pre>
+                <pre><code># docs/notes.md, раздел 3.4 (пример)
+Режимы: поиск console.log — режим плана (в Copilot это Ask: только вопрос по коду);
+план замены — режим плана (в Copilot это Plan: план на ревью до правок);
+T-3, T-5, T-6 — агентный режим (Agent): правки в нескольких файлах и запуск тестов.
+Inline completion подошёл бы только для мелкой правки в одной строке.
+Остановил агента, когда он начал менять тесты из ping-коммита вместо кода.
+Откатил через /rewind замену логгера в tests/: тестам вывод в консоль не мешал.</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> человек задаёт направление и проверяет, агент пишет
+              код. Типы, линтер, тесты и <code>npm run check</code> ловят то, что
+              «выглядит правильно», а решение о merge принимает человек.
+            </div>
+          </article>
+
+          <!-- TASK 3.5 -->
+          <article class="task" id="t5">
+            <span class="chip">Задание 3.5</span>
+            <h2>Свои команды, hooks и MCP</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> Claude Code in Action; Cursor Basics 101; GitHub Copilot Capabilities; AI-Native SDLC</span>
+              <span><b>Время:</b> ~75 мин</span>
+            </div>
+            <div class="goal">
+              <strong>Что делаем:</strong> превращаем повторяющиеся действия в
+              команды и правила, которые срабатывают автоматически.
+              <strong>Зачем:</strong> то, что делается чаще двух раз, должно
+              быть командой. То, что нельзя нарушать, должно быть hook, а не
+              просьбой в <code>CLAUDE.md</code>.
+            </div>
+
+            <h3>Условие</h3>
+            <ol class="cond">
+              <li>
+                <b>Команда</b> <code>.claude/commands/new-endpoint.md</code>:
+                пошаговый шаблон нового эндпойнта — тип запроса, функция
+                хранилища, роут, тест, <code>npm run check</code>.
+              </li>
+              <li>
+                <b>Hook PreToolUse:</b> блокирует чтение <code>.env</code> с
+                понятным сообщением.
+              </li>
+              <li>
+                <b>Hook PostToolUse:</b> после правки <code>.ts</code>-файла
+                запускает <code>eslint</code> для этого файла.
+              </li>
+              <li>
+                <b>MCP:</b> перенесите 2 тикета из <code>BACKLOG.md</code> в Issues
+                своего репозитория на GitHub, подключите GitHub MCP и
+                реализуйте один тикет, который агент читает через MCP.
+              </li>
+              <li>
+                <b>Контекст.</b> Попросите тесты для одной функции из
+                <code>src/storage.ts</code> и доведите их до зелёного, даже если
+                понадобится несколько итераций. Затем сделайте
+                <code>/compact</code> и попросите тесты для следующей функции из
+                того же файла. Перед несвязанной задачей сделайте
+                <code>/clear</code>.
+              </li>
+              <li>
+                <b>Общие настройки команды.</b> Закоммитьте
+                <code>.claude/commands/</code>, <code>.claude/hooks/</code> и
+                <code>.claude/settings.json</code>. Проверьте, что новый участник
+                получит их при клонировании: <code>git clone . /tmp/team-tasks-check</code>,
+                <code>npm install</code>, запустите там Claude Code.
+              </li>
+            </ol>
+
+            <h3>В Copilot и Cursor</h3>
+            <div class="note">
+              <b>MCP для трекера.</b>
+              <ul class="cond">
+                <li>
+                  <b>Аналог:</b> в Copilot в VS Code сервер описывается в
+                  <code>.vscode/mcp.json</code>, в Cursor — в
+                  <code>.cursor/mcp.json</code>. Файл можно закоммитить, чтобы
+                  сервер был у всей команды; токен в него не кладут.
+                </li>
+                <li>
+                  <b>С чем путают:</b> вставлять тикеты в чат вручную — работает,
+                  но каждый раз заново и без обновлений. Ссылка на тикет в файле
+                  правил — это только текст: открыть её агент не может. Модель
+                  побольше не даёт доступа к трекеру.
+                </li>
+                <li>
+                  <b>В журнал:</b> почему ссылка на тикет в файле правил не даёт
+                  агенту прочитать тикет.
+                </li>
+              </ul>
+              <pre><code>// .vscode/mcp.json
+{
+  "servers": {
+    "github": { "type": "http", "url": "https://api.githubcopilot.com/mcp/" }
+  }
+}</code></pre>
+            </div>
+            <div class="note">
+              <b>Команда для повторяющегося промпта.</b>
+              <ul class="cond">
+                <li>
+                  <b>Аналог:</b> в Cursor — <code>.cursor/commands/*.md</code>,
+                  вызывается через <code>/</code>; в Copilot —
+                  <code>.github/prompts/*.prompt.md</code>. Формат тот же:
+                  Markdown с пошаговой инструкцией, поэтому
+                  <code>new-endpoint.md</code> можно перенести почти без правок.
+                </li>
+                <li>
+                  <b>С чем путают:</b> личный файл с промптом, который вставляют
+                  каждый раз, — он не общий и не версионируется. Просьба «сделай
+                  по обычной структуре» заставляет агента угадывать. Документ об
+                  архитектуре в каждом запросе занимает контекст, но шагов не
+                  задаёт.
+                </li>
+                <li>
+                  <b>В журнал:</b> почему команда должна быть пошаговой, а не «сделай
+                  как обычно».
+                </li>
+              </ul>
+            </div>
+
+            <h3>Критерии готовности</h3>
+            <ul class="criteria">
+              <li>
+                Команда, вызванная дважды для разных эндпойнтов, создаёт
+                одинаковую структуру файлов и тестов.
+              </li>
+              <li>Попытка агента прочитать <code>.env</code> блокируется с сообщением.</li>
+              <li>После правки файла <code>eslint</code> запускается автоматически.</li>
+              <li>PR ссылается на Issue, который агент прочитал через MCP.</li>
+              <li>
+                В <code>docs/notes.md</code>: что агент помнил после
+                <code>/compact</code> и чем это отличалось от <code>/clear</code>.
+              </li>
+              <li>
+                В клоне репозитория команда <code>/new-endpoint</code> доступна и
+                чтение <code>.env</code> блокируется без дополнительной настройки.
+              </li>
+              <li>
+                В <code>docs/notes.md</code> — две строки из блока «В Copilot и
+                Cursor»: про ссылку на тикет и про пошаговую команду.
+              </li>
+            </ul>
+
+            <details>
+              <summary>Подсказки</summary>
+              <div class="body">
+                <ul class="cond">
+                  <li>
+                    В тексте команды аргументы подставляются через
+                    <code>$ARGUMENTS</code>.
+                  </li>
+                  <li>
+                    Hook получает описание вызова инструмента в stdin в виде
+                    JSON. Код выхода <code>2</code> блокирует вызов, а текст из
+                    stderr получает агент.
+                  </li>
+                  <li>
+                    <code>/compact</code> сжимает историю и сохраняет то, что
+                    агент узнал. <code>/clear</code> начинает с чистого листа —
+                    для новой, несвязанной задачи.
+                  </li>
+                  <li>
+                    Hooks написаны на Node.js (<code>.mjs</code>), поэтому
+                    работают одинаково на macOS, Linux и Windows.
+                  </li>
+                  <li>
+                    <code>.claude/settings.json</code> — общие настройки, они в
+                    репозитории. <code>.claude/settings.local.json</code> —
+                    личные, он в <code>.gitignore</code>.
+                  </li>
+                  <li>
+                    Так работает AI Champion: собирает общие настройки агента в
+                    репозитории, чтобы команда работала с ними, а не каждый со
+                    своими промптами. Это шаг от L1 к L2.
+                  </li>
+                  <li>Подключение GitHub MCP требует personal access token.</li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="solution">
+              <summary>Показать пример решения</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки.</p>
+                <pre><code># .claude/commands/new-endpoint.md
+Создай новый эндпойнт: $ARGUMENTS
+
+Шаги:
+1. Тип тела запроса и ответа — в src/app.ts рядом с остальными, без any.
+2. Логика — экспортируемая функция в src/storage.ts.
+3. Роут — в src/app.ts.
+4. Тест — tests/&lt;имя&gt;.test.ts (Vitest + supertest): успешный случай и ошибка (404 или 422).
+5. Запусти npm run check и верни только итог.
+Другие файлы не меняй.</code></pre>
+                <pre><code>// .claude/settings.json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write|Bash|Grep",
+        "hooks": [{ "type": "command", "command": "node .claude/hooks/block-env.mjs" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "node .claude/hooks/lint-after-edit.mjs" }]
+      }
+    ]
+  }
+}</code></pre>
+                <pre><code>// .claude/hooks/block-env.mjs
+import { readFileSync } from "node:fs";
+
+const input = JSON.parse(readFileSync(0, "utf8")).tool_input ?? {};
+const target = ["file_path", "path", "command", "pattern"].map((k) =&gt; String(input[k] ?? "")).join(" ");
+if (/(^|[\s/'"])\.env(?![\w.])/.test(target)) {
+  console.error("Чтение .env запрещено правилами проекта.");
+  process.exit(2); // код 2 блокирует вызов инструмента
+}</code></pre>
+                <pre><code>// .claude/hooks/lint-after-edit.mjs
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+
+const path = JSON.parse(readFileSync(0, "utf8")).tool_input?.file_path ?? "";
+if (path.endsWith(".ts")) {
+  const result = spawnSync("npx", ["eslint", path], { encoding: "utf8", shell: process.platform === "win32" });
+  if (result.status !== 0) {
+    console.error(result.stdout);
+    process.exit(2); // агент получит замечания eslint и исправит их
+  }
+}</code></pre>
+                <pre><code># GitHub MCP для Claude Code
+claude mcp add --transport http github https://api.githubcopilot.com/mcp/ \
+  --header "Authorization: Bearer ВАШ_GITHUB_TOKEN"</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Вывод:</b> команды делают повторяющиеся задачи одинаковыми для
+              всей команды, hooks гарантируют правила, которые нельзя нарушать, а
+              MCP даёт агенту доступ к трекеру без копирования тикетов вручную.
+              Всё это лежит в репозитории, поэтому каждый новый участник получает
+              настройки вместе с кодом.
+            </div>
+          </article>
+
+          <!-- FINAL -->
+          <article class="task final" id="final">
+            <span class="chip">Итоговое задание модуля</span>
+            <h2>Фича от тикета до PR</h2>
+            <div class="meta">
+              <span><b>Подтемы:</b> 3.1–3.5</span>
+              <span><b>Время:</b> 3–4 часа</span>
+              <span><b>Результат:</b> PR + заметка о решениях</span>
+            </div>
+            <div class="goal">
+              <strong>Сценарий:</strong> эпик T-7 «Пользователи забывают про
+              задачи. Нужно напоминать о сроках». Требований почти нет — их нужно
+              выяснить и записать.
+            </div>
+
+            <h3>Путь</h3>
+            <p>
+              Правила проекта → constitution и спецификация → разбор вопросов →
+              план и задачи → реализация «сначала тесты» → своя команда
+              <code>/self-review</code> → <code>npm run check</code> → PR с
+              описанием.
+            </p>
+            <div class="note">
+              Команду для ревью назовите не <code>/review</code>: в Claude Code
+              уже есть встроенная команда с таким именем.
+            </div>
+
+            <h3>Критерии приёмки</h3>
+            <table>
+              <tr>
+                <th>Подтема</th>
+                <th>Курс</th>
+                <th>Критерий</th>
+              </tr>
+              <tr>
+                <td>3.1 Правила</td>
+                <td>Claude Code in Action</td>
+                <td>
+                  Агент соблюдает <code>CLAUDE.md</code> без напоминаний; личные
+                  правила не в репозитории; <code>CLAUDE.md</code> менялся по ходу
+                  модуля (не меньше 3 коммитов).
+                </td>
+              </tr>
+              <tr>
+                <td>3.2 Тесты</td>
+                <td>AI-Assisted Engineering</td>
+                <td>
+                  Тесты проверяют бизнес-правила из спецификации, а не текущее
+                  поведение кода.
+                </td>
+              </tr>
+              <tr>
+                <td>3.3 Спецификация</td>
+                <td>Spec Kit; EngX.AI</td>
+                <td>
+                  Есть constitution и спецификация без
+                  <code>NEEDS CLARIFICATION</code>; каждый критерий приёмки
+                  закрыт тестом.
+                </td>
+              </tr>
+              <tr>
+                <td>3.4 Проверка</td>
+                <td>Structured Vibe Coding; EngX.AI</td>
+                <td>
+                  Коммит с тестами раньше реализации; <code>npm run check</code>
+                  проходит; изменения только в нужных файлах.
+                </td>
+              </tr>
+              <tr>
+                <td>3.5 Автоматизация</td>
+                <td>Claude Code in Action</td>
+                <td>В работе использованы своя команда <code>/self-review</code> и hooks.</td>
+              </tr>
+              <tr>
+                <td>PR</td>
+                <td>EngX.AI</td>
+                <td>
+                  В описании: что сделано, как проверено, что осталось. Merge
+                  делаете вы после <code>/self-review</code> и чтения diff, а не
+                  агент.
+                </td>
+              </tr>
+              <tr>
+                <td>Метрики</td>
+                <td>AI-Native SDLC</td>
+                <td>
+                  Цифры в заметке взяты из <code>git log</code> и
+                  <code>/cost</code>, а не оценены «на глаз»; названа базовая
+                  линия для сравнения.
+                </td>
+              </tr>
+              <tr>
+                <td>Практика команды</td>
+                <td>AI-Native SDLC</td>
+                <td>
+                  Настройки агента в репозитории работают после клонирования; в
+                  заметке — уровень L0–L3 вашей команды и следующий шаг.
+                </td>
+              </tr>
+            </table>
+
+            <h3>Заметка о решениях (до страницы)</h3>
+            <ul class="cond">
+              <li>Какие вопросы по требованиям возникли и как они решены.</li>
+              <li>Где агент помог, где пришлось вмешиваться и почему.</li>
+              <li>
+                Метрики из системных данных: число коммитов, время от первого
+                коммита ветки до PR, сколько раз тесты сначала были красными,
+                стоимость сессий (<code>/cost</code>). Оценки вида «сэкономил
+                3 часа» не считаются.
+              </li>
+              <li>
+                С чем сравнивать: какую базовую линию «до AI» вы взяли бы в своей
+                команде (например, cycle time и число возвратов из ревью по Jira
+                за квартал до внедрения) и почему метрики одной ветки одного
+                человека сами по себе ничего не доказывают. Не годятся опрос
+                «сколько часов сэкономили» и число строк, написанных AI.
+              </li>
+              <li>
+                На каком уровне L0–L3 ваша текущая команда и что из настроек
+                модуля вы бы перенесли в её репозиторий.
+              </li>
+            </ul>
+            <pre><code>git log main..HEAD --reverse --format='%h %ci %s'   # коммиты ветки и их время
+git log main..HEAD --oneline | wc -l                 # число коммитов</code></pre>
+
+            <h3>Как проверить себя</h3>
+            <table>
+              <tr>
+                <th>Подтема</th>
+                <th>Как проверить</th>
+              </tr>
+              <tr>
+                <td>3.1 Правила</td>
+                <td>
+                  <code>git log --oneline -- CLAUDE.md</code> — не меньше 3
+                  коммитов; <code>git ls-files CLAUDE.local.md</code> ничего не
+                  выводит; в diff ветки нет нарушений правил из
+                  <code>CLAUDE.md</code>.
+                </td>
+              </tr>
+              <tr>
+                <td>3.2 Тесты</td>
+                <td>
+                  Временно нарушьте одно бизнес-правило в коде (например, срок
+                  напоминания) и запустите <code>npm test</code>: хотя бы один
+                  тест должен упасть. Затем <code>git restore .</code>.
+                </td>
+              </tr>
+              <tr>
+                <td>3.3 Спецификация</td>
+                <td>
+                  <code>grep -rn "NEEDS CLARIFICATION" specs/</code> ничего не
+                  выводит; для каждого критерия приёмки из
+                  <code>spec.md</code> найдите тест, который его проверяет.
+                </td>
+              </tr>
+              <tr>
+                <td>3.4 Проверка</td>
+                <td>
+                  <code>git log --oneline main..HEAD</code>: коммит
+                  <code>test:</code> раньше <code>feat:</code>;
+                  <code>git checkout &lt;коммит с тестами&gt; &amp;&amp; npm test</code>
+                  — красный; <code>npm run check</code> — зелёный;
+                  <code>git diff --stat main...HEAD</code> — только файлы задачи.
+                </td>
+              </tr>
+              <tr>
+                <td>3.5 Автоматизация</td>
+                <td>
+                  Команда <code>/self-review</code> лежит в
+                  <code>.claude/commands/</code>; в <code>docs/notes.md</code>
+                  записано, где сработал hook и что сказал
+                  <code>/self-review</code>.
+                </td>
+              </tr>
+              <tr>
+                <td>PR</td>
+                <td>В описании три раздела: что сделано, как проверено, что осталось.</td>
+              </tr>
+              <tr>
+                <td>Метрики</td>
+                <td>
+                  У каждой цифры в заметке указана команда, из которой она
+                  взята; есть базовая линия и источник данных для неё.
+                </td>
+              </tr>
+              <tr>
+                <td>Практика команды</td>
+                <td>
+                  <code>git clone . /tmp/team-tasks-check</code>,
+                  <code>npm install</code>, Claude Code: команда
+                  <code>/new-endpoint</code> есть, чтение <code>.env</code>
+                  блокируется.
+                </td>
+              </tr>
+            </table>
+
+            <details class="solution">
+              <summary>Показать пример решения</summary>
+              <div class="body">
+                <p class="warn">Откройте после собственной попытки и самопроверки.</p>
+                <pre><code>Вопросы по T-7 и решения (фрагмент spec.md):
+- Где хранится срок? Новое необязательное поле dueDate (ISO-дата) у задачи.
+- Что такое «напоминать»? GET /reminders: невыполненные задачи со сроком
+  в ближайшие 24 часа и просроченные. Почта и push — вне объёма.
+- Срок в прошлом при создании? 422 с { detail }.
+- Выполненные задачи? В напоминания не попадают.</code></pre>
+                <pre><code>Описание PR (пример):
+## Что сделано
+T-7: поле dueDate, валидация срока, GET /reminders (просроченные и ближайшие 24 ч).
+## Как проверено
+npm run check зелёный; 9 тестов по критериям приёмки AC-1…AC-5 из spec.md;
+тесты закоммичены до реализации (a1b2c3d → d4e5f6a).
+## Что осталось
+Уведомления по почте — отдельный тикет; часовой пояс пользователя не учитывается.</code></pre>
+                <pre><code>Заметка (фрагмент про метрики):
+- 7 коммитов в ветке (git log main..HEAD --oneline | wc -l).
+- 2 ч 40 мин от первого коммита до PR (git log main..HEAD --reverse --format='%ci').
+- Тесты были красными до реализации в 2 из 2 пар test/feat.
+- $1.85 за сессии (/cost).
+- Базовая линия: медианный cycle time похожих тикетов в Jira за квартал до AI — 3 дня.
+  Одна ветка — это точка, а не тренд: сравнивать нужно медианы команды за период.</code></pre>
+              </div>
+            </details>
+
+            <div class="note">
+              <b>Если какой-то критерий не выполнен:</b> вернитесь к заданию и
+              курсу из колонок «Подтема» и «Курс».
+            </div>
+          </article>
+
+          <!-- EXTRA -->
+          <article class="task theory" id="extra">
+            <span class="chip">Дополнительно</span>
+            <h2>Сравнение инструментов</h2>
+            <div class="meta">
+              <span><b>Курсы:</b> GitHub Copilot Capabilities; Cursor Basics 101</span>
+              <span><b>Время:</b> ~1 час</span>
+              <span><b>Необязательно</b></span>
+            </div>
+            <p>
+              Сделайте одну небольшую задачу из бэклога (например, T-5) в Copilot
+              или Cursor и сравните с Claude Code: качество результата, сколько
+              понадобилось итераций, насколько удобно работать с правилами и
+              контекстом.
+            </p>
+          </article>
+
+          <div class="pager">
+            <a href="module2.html"
+              ><div class="dir">← Назад</div>
+              <div class="ttl">Модуль 2. Prompt и структура</div></a
+            >
+            <a class="next" href="https://olegrabushko.github.io/AI-Upskilling/module4.html"
+              ><div class="dir">Дальше →</div>
+              <div class="ttl">Модуль 4. Evals и tracing</div></a
+            >
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="container">AI Upskilling · Модуль 3 · Team Tasks</div>
+    </footer>
+    <script src="app.js"></script>
+  </body>
+</html>
